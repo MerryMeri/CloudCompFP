@@ -11,14 +11,20 @@ def lambda_handler(event, context):
         url = "https://search-photos-z5ptjwic2ktfmrk6vmd3lpz52y.us-east-1.es.amazonaws.com/photos/_search?q="
         tag = response['slots']['tagOne'].capitalize()
         url = url + tag
+        if (tag[-1] == "s"):
+            url += " OR " + tag[:-1]
         print(tag)
         if (response['slots']['tagTwo'] != None and response['slots']['tagTwo'] != ""): 
             tag2 = response['slots']['tagTwo'].capitalize()
             url = url + " OR " + tag2
+            if (tag2[-1] == "s"):
+                url += " OR " + tag2[:-1]
             print(tag2)
         if (response['slots']['tagThree'] != None and response['slots']['tagThree'] != ""):
             tag3 = response['slots']['tagThree'].capitalize()
             url = url + " OR " + tag3
+            if (tag3[-1] == "s"):
+                url += " OR " + tag3[:-1]
             print(tag3)
         
         photos = []
