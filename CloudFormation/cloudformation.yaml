@@ -1,0 +1,193 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: ""
+Resources:
+    ApiGatewayRestApi:
+        DeletionPolicy: "Retain"
+        Type: "AWS::ApiGateway::RestApi"
+        Properties:
+            Name: "apiPhotos"
+            ApiKeySourceType: "HEADER"
+            BinaryMediaTypes: 
+              - "images/jpeg"
+              - "images/png"
+              - "images/jpg"
+            EndpointConfiguration: 
+                Types: 
+                  - "REGIONAL"
+
+    ApiGatewayApiKey:
+        DeletionPolicy: "Retain"
+        Type: "AWS::ApiGateway::ApiKey"
+        Properties:
+            Enabled: true
+            Name: "api-key"
+
+    S3Bucket:
+        DeletionPolicy: "Retain"
+        Type: "AWS::S3::Bucket"
+        Properties:
+            BucketName: "frontend-pipelinefp"
+            WebsiteConfiguration: 
+                IndexDocument: "homepage.html"
+
+    S3Bucket2:
+        DeletionPolicy: "Retain"
+        Type: "AWS::S3::Bucket"
+        Properties:
+            BucketName: "picturesbucketfp"
+            CorsConfiguration: 
+                CorsRules: 
+                  - 
+                    AllowedHeaders: 
+                      - "*"
+                    AllowedMethods: 
+                      - "PUT"
+                      - "HEAD"
+                      - "GET"
+                    AllowedOrigins: 
+                      - "*"
+            NotificationConfiguration: 
+                LambdaConfigurations: 
+                  - 
+                    Event: "s3:ObjectCreated:Put"
+                    Function: !GetAtt LambdaFunction.Arn
+
+    IAMUser:
+        DeletionPolicy: "Retain"
+        Type: "AWS::IAM::User"
+        Properties:
+            Path: "/"
+            UserName: "Meri"
+            Groups: 
+              - "Me"
+
+    IAMRole:
+        DeletionPolicy: "Retain"
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/"
+            RoleName: "apis3bucketaccess"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"apigateway.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/s3accessapi"
+            Description: "Allows API Gateway to push logs to CloudWatch Logs."
+
+    IAMRole2:
+        DeletionPolicy: "Retain"
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            RoleName: !Sub "AWSCodePipelineServiceRole-${AWS::Region}-frontendDeploy"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"codepipeline.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSCodePipelineServiceRole-${AWS::Region}-frontendDeploy"
+
+    IAMRole3:
+        DeletionPolicy: "Retain"
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            RoleName: !Sub "AWSCodePipelineServiceRole-${AWS::Region}-pipelineLambda"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"codepipeline.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSCodePipelineServiceRole-${AWS::Region}-pipelineLambda"
+
+    IAMRole4:
+        DeletionPolicy: "Retain"
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            RoleName: !Sub "${LambdaFunction}-role-jyjhz8sk"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-a52daa84-391d-4392-af9c-6f1b08882900"
+
+    IAMRole5:
+        DeletionPolicy: "Retain"
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/service-role/"
+            RoleName: "indexphotosRole"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaS3ExecutionRole-11a4e54d-8ce3-4311-aaf2-c1976c8cc4c5"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaBasicExecutionRole-056976d9-6d84-4c8a-b8bb-ac253d141ecb"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/service-role/AWSLambdaElasticsearchExecutionRole-046016c9-a695-47ce-93d3-c524f42564f0"
+
+    IAMRole6:
+        DeletionPolicy: "Retain"
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/"
+            RoleName: "lambdaOne"
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            ManagedPolicyArns: 
+              - "arn:aws:iam::aws:policy/AWSLambdaExecute"
+              - "arn:aws:iam::aws:policy/AmazonRekognitionFullAccess"
+              - "arn:aws:iam::aws:policy/AmazonLexFullAccess"
+              - "arn:aws:iam::aws:policy/AmazonOpenSearchServiceFullAccess"
+            Description: "Allows Lambda functions to call AWS services on your behalf."
+
+    LambdaFunction:
+        DeletionPolicy: "Retain"
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            Environment: 
+                Variables: 
+                    SECRET_ACCESS_KEY_ID: "D53upllMR9zFVHrjnKIVtVECRjmFxpSRcrA9mXbh"
+                    ACCESS_KEY_ID: "AKIA5EZMTTRZONVXJRIX"
+                    BUCKET_NAME: "picturesbucketfp"
+            FunctionName: "indexPhotos"
+            Handler: "lambda_function.lambda_handler"
+            Architectures: 
+              - "x86_64"
+            Code: 
+                S3Bucket: "prod-04-2014-tasks"
+                S3Key: !Sub "/snapshots/${AWS::AccountId}/indexPhotos-c1e713bc-2869-4ea7-b2bf-306c28d957a4"
+                S3ObjectVersion: "pkPxzoyMjFlLmSKVEFOKjAelM500Z9r9"
+            MemorySize: 128
+            Role: !GetAtt IAMRole6.Arn
+            Runtime: "python3.7"
+            Timeout: 3
+            TracingConfig: 
+                Mode: "PassThrough"
+            EphemeralStorage: 
+                Size: 512
+
+    LambdaFunction2:
+        DeletionPolicy: "Retain"
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "searchPhotos"
+            Handler: "lambda_function.lambda_handler"
+            Architectures: 
+              - "x86_64"
+            Code: 
+                S3Bucket: "prod-04-2014-tasks"
+                S3Key: !Sub "/snapshots/${AWS::AccountId}/searchPhotos-4d8cc5d5-6cd9-4060-8de3-875b0825e1c2"
+                S3ObjectVersion: "o_C6IA5XK.AtsvrLewp._q9wYPVa4h78"
+            MemorySize: 128
+            Role: !GetAtt IAMRole6.Arn
+            Runtime: "python3.7"
+            Timeout: 3
+            TracingConfig: 
+                Mode: "PassThrough"
+            EphemeralStorage: 
+                Size: 512
+Outputs:
+    WebsiteURL:
+        Value: !GetAtt 
+            - S3Bucket
+            - WebsiteURL
+        Description: URL for website hosted on S3
