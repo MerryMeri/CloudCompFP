@@ -46,14 +46,21 @@ function search() {
   }
 
   var apigClient = apigClientFactory.newClient();
-  var photoResults = document.getElementById('photoResults');
-  photoResults.innerHTML = "";
+  document.getElementById('photoResults1').innerHTML = "";
+  document.getElementById('photoResults2').innerHTML = "";
+  document.getElementById('photoResults3').innerHTML = ""
 
   apigClient.searchGet(params, {}, {})
       .then(function (result) {
           var photos = result['data']['photos'];
           console.log(photos);
           for (n = 0; n < photos.length; n++) {
+            console.log(String(n))
+            var whichColumn = ((n + 1) % 3);
+            if (whichColumn == 0) {
+              whichColumn = 3;
+            }
+            var photoResults = document.getElementById('photoResults' + String(whichColumn));
             var caption = "";
             for (i = 0; i < photos[n][1].length; i++) {
               caption += photos[n][1][i];
@@ -61,7 +68,7 @@ function search() {
                 caption += ", "
               }
             }
-            photoResults.innerHTML += '<figure><img src="' + photos[n][0] + '" style="width:33%"><figcaption style="width:33%">' + caption + '</figcaption></figure>';
+            photoResults.innerHTML += '<figure><img src="' + photos[n][0] + '" style="width:100%"><figcaption style="width:100%">' + caption + '</figcaption></figure>';
           }
           
         }).catch(function(result){
